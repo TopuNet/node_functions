@@ -1,0 +1,22 @@
+{
+  "name": "TopuNet-node-functions",
+  "version": "1.0.1",
+  "description": "Topu.net node.js类库",
+  "main": "Readme.md",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TopuNet/node-functions.git"
+  },
+  "keywords": [
+    "topu.net"
+  ],
+  "author": "Topu.net",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TopuNet/node-functions/issues"
+  },
+  "homepage": "https://github.com/TopuNet/node-functions#readme"
+}
