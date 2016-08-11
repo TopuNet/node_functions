@@ -1,7 +1,17 @@
-# node.js类库 v1.0.1
+# node.js类库 v1.0.3
 
 更新日志：
 -------------
+
+v1.0.3
+
+        1. 修改Request方法关于headers默认值的bug
+        2. 增加全局变量subDomain_default // 默认二级域名，没找到主域名或无二级域名时使用
+        3. CreateTopuSignature默认拼接params_filter和source
+
+v1.0.2
+
+        1. Request方法增加headers参数
 
 v1.0.1
 

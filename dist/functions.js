@@ -1,15 +1,17 @@
 /*
  *@ 高京
- *@ 20150825 
+ *@ 2016-08-10
+ *@ v1.0.3
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
 
-exports.domain = "65276588.cn"; // 主域名-获得二级域名用
+exports.domain = "topu.net"; // 主域名-获得二级域名用
+exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或无二级域名时使用
 
 /*
    高京
-        *【同步】生成随机码。返回字符串
+        *【同步】生成随机数随机码。返回字符串
         * n: 位数，数字+字母的组合时请键入偶数
         * kind: 生成种类。1-纯数字 2-纯大写字母 3-纯小写字母 4-数字+大写字母 5-数字+小写字母 6-大写字母或小写字母 7-数字+纯大写字母或小写字母
         CreateRandomStr(n,kind)
@@ -18,7 +20,7 @@ exports.domain = "65276588.cn"; // 主域名-获得二级域名用
         * dt: 日期。
         CreateTimeStamp(dt)
 
-        *【同步】对JSON进行字典序排序（如需和.NET的字典序排序作匹配则不建议使用，建议使用TopuAPI.65276588.cn:3333/ListSort.ashx接口作排序）。返回JSON对象
+        *【同步】对JSON进行字典序排序（如需和.NET的字典序排序作匹配则不建议使用）。返回JSON对象
         * json_o: JSON对象。
         JsonSort(json_o) 
 
@@ -153,18 +155,23 @@ exports.domain = "65276588.cn"; // 主域名-获得二级域名用
         * arr_target：目标数组
         arr_value_match(arr_source, match, arr_target)
 
-        *【同步】解析xml为json
+        *【异步】解析xml为json
         * xmlString：待解析的xml字符串
         * CallBack_success(json)：成功回调
         xmlToJson(xmlString, CallBack_success)
 
-         *【异步】request请求
+        *【异步】request请求
         * opt: {
                 url: request地址，支持https协议和地址栏参数,
                 method: get|post_json|post_file。 默认get,
                 PostData: method=post_json时有效; json对象,
                 PostData_escape: 对PostData进行unicode和escape编码（针对拓扑接口）。默认"true"，调用微信或其他不需要编码接口时，设为"false"
-                files: method=post_file时有效; 名称1|文件名1||名称2|文件名2||名称3|文件名3...
+                files: method=post_file时有效; 名称1|文件名1||名称2|文件名2||名称3|文件名3...,
+                cert: cert证书文件路径。"d:\cert.crt"||"./cert.crt",
+                cert_key: cert密钥文件路径。"d:\cert.key"||"./cert.key",
+                ca: ca证书路径,
+                pfx：pfx证书,
+                passwd: cert|pfx证书密码
           }
         * Callback_success(json): 成功回调
         * Callback_error(err): 失败回调
@@ -207,6 +214,7 @@ var crypto = require('crypto'); //加密模块，CreateHash用
 var fs = require('fs'); //文件操作模块，ReadFile用
 var http = require('http'); //http请求模块，DoREST用
 var https = require('https'); //https请求模块，DoREST用
+var request = require("request"); // request模块，Request方法用
 var dtFormat = require('dateFormat'); //日期格式化模块，dateFormat用
 var nodemailer = require('nodemailer'); //邮件发送模块，MailSend用
 var smtpTransport = require('nodemailer-smtp-transport'); //邮件发送模块，MailSend用
@@ -216,8 +224,28 @@ var xml2js = require("xml2js"); //解析xml为json用
 
 /*
     高京
+    2016-05-06
+    【同步】 解析json为xml，返回xml字符串
+    * json：待解析json对象
+*/
+exports.jsonToXml = function(json) {
+
+    // 组织xml
+    var xml = "<xml>";
+    for (var key in json) {
+        xml += "<" + key + ">";
+        xml += "<![CDATA[" + json[key] + "]]>";
+        xml += "</" + key + ">";
+    }
+    xml += "</xml>";
+
+    return xml;
+};
+
+/*
+    高京
     2016-04-27
-    【同步】解析xml为json
+    【异步】解析xml为json
     xmlString：待解析的xml字符串
     CallBack_success(json)：成功回调
 */
@@ -234,8 +262,7 @@ exports.Error = function(res, err) {
     err.status = err.status || 404;
     res.status(err.status);
     res.render('./err/404.html', {
-        "common": err.status + " - 元吉官网",
-        "menu": "1",
+        "common": config.GetCommon(err.status, "", "", 1),
         "err": (err.status) + ": " + err.message.replace(/[\n\r]/g, " ").replace(/\"/g, "\\\"")
     });
 };
@@ -403,7 +430,7 @@ exports.CreateTimeStamp = function(dt) {
 /*
  *@高京
  *@20150825 
- *@【同步】对JSON进行字典序排序。返回JSON对象
+ *@【同步】对JSON进行字典序排序（如需和.NET的字典序排序作匹配则不建议使用）。返回JSON对象
  *@ json_o: JSON对象。
  */
 exports.JsonSort = function(json_o) {
@@ -538,7 +565,9 @@ exports.CreateTopuSignature = function(ParamsJsonObj, CallBack, non_str, stamp) 
 
     //拼接JSON
     _str = "{";
-    _str += "\"non_str\":\"" + _non_str + "\"";
+    _str += "\"params_filter\":\"\"";
+    _str += ",\"source\":\"node\"";
+    _str += ",\"non_str\":\"" + _non_str + "\"";
     _str += ",\"stamp\":\"" + _stamp + "\"";
     _str += ",\"signature\":\"" + _sign + "\"";
     _str += "}";
@@ -568,27 +597,27 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
     var _req;
     var _PostDataLength = 0; //Post参数长度
     if (PostData) {
-        PostData = JSON.stringify(PostData); //设置POST参数，GET方式可以不要
-        _PostDataLength = PostData.length;
+        // PostData = JSON.stringify(PostData); //设置POST参数，GET方式可以不要
+        // _PostDataLength = PostData.length;
+        _PostDataLength = JSON.stringify(PostData).length;
     }
     _options = { //参数集
         host: Host, //域名
         port: Port, //端口
         path: Path, //路径 /test/test.ashx，如需经GET传递数据，可写'/test/test.ashx?k=1&p=2&ps=15'
         method: Method, //GET or POST
+
         headers: {
-            "Content-Type": 'application/x-www-form-urlencoded',
+            "Content-Type": 'application/json',
             "Content-Length": _PostDataLength
         } //头信息，这两行仅针对有数据要POST的情况，头信息还有其他很多属性，要根据需求使用    
     };
-    
-    _req = http_method.request(_options, function (_res) {
-        _res.setEncoding('utf-8'); //返回值设定编码
+    _req = http_method.request(_options, function(_res) {
+        _res.setEncoding('utf8'); //返回值设定编码
 
         var _postdata = "";
         var i = 0;
-        _res.on('data', function (_data) {
-            
+        _res.on('data', function(_data) {
             _postdata += _data;
         });
         _res.on('end', function() {
@@ -606,18 +635,114 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
     });
     if (PostData) {
         PostData = func.JsonEscape(PostData);
-        _req.write(PostData); //传递POST数据，如不经POST传递数据，可省略
+        PostData = JSON.stringify(PostData);
+        _req.write(PostData, "uniencode"); //传递POST数据，如不经POST传递数据，可省略
+        // console.dir(_req);
     }
-    _req.end(); 
+    _req.end();
     _req.on('error', function(e) {
         console.log("\nfunc 607:")
         console.dir(e);
         CallBackError("err:" + e.message);
     });
-    
+
 };
 
+/*
+ *@ 高京
+ *@ 2016-08-10
+ *@【异步】request请求
+ *@ opt: {
+        url: request地址，支持https协议和地址栏参数,
+        method: get|post_json|post_file|post_str。 默认get,
+        PostData: method=post_json||post_str时有效; post_json时为json对象，post_str时为任意字符串,
+        files: method=post_file时有效; 名称1|文件名1||名称2|文件名2||名称3|文件名3...,
+        cert: cert证书文件路径。"d:\cert.crt"||"./cert.crt",
+        cert_key: cert密钥文件路径。"d:\cert.key"||"./cert.key",
+        ca: ca证书路径,
+        pfx：pfx证书,
+        passwd: cert|pfx证书密码,
+        headers:{ // 头信息
+            "Content-Type": 'application/json',
+            "Content-Length": ""
+        }
+ *  }
+ *@ Callback_success(json||str): 成功回调
+ *@ Callback_error(err): 失败回调
+ */
+exports.Request = function(opt, Callback_success, Callback_error) {
 
+    // 默认提交方法
+    opt.method = opt.method || "get";
+
+    // 是否使用json格式
+    var use_json = opt.method == "post_json" ? true : false;
+    // 证书
+    var cert,
+        key,
+        pfx;
+    if (opt.cert) {
+        if (fs.existsSync(opt.cert))
+            cert = func.ReadFileSync(opt.cert).toString();
+    }
+    if (opt.cert_key) {
+        if (fs.existsSync(opt.cert_key))
+            key = func.ReadFileSync(opt.cert_key).toString();
+    }
+    if (opt.pfx) {
+        if (fs.existsSync(opt.pfx))
+            pfx = func.ReadFileSync(opt.pfx);
+    }
+    opt.headers = opt.headers || {};
+
+    var options = {
+        opt: {
+            url: opt.url,
+            method: opt.method == "get" ? "GET" : "POST",
+            body: opt.PostData || null,
+            json: use_json,
+            agentOptions: {
+                cert: cert || null,
+                key: key || null,
+                pfx: pfx || null,
+                passphrase: cert || pfx ? opt.passwd : null
+            },
+            headers: opt.headers
+        },
+        Callback_success: function(err, _res, body) {
+            if (err) {
+                if (Callback_error)
+                    Callback_error({ err: err, code: err.statusCode, msg: err.statusMessage });
+            } else {
+                try {
+                    body = JSON.parse(body);
+                } catch (e) {}
+                if (Callback_success)
+                    Callback_success(body);
+            }
+        }
+    };
+
+    var _req = request(options.opt, options.Callback_success);
+
+    // 上传文件
+    if (opt.method == "post_file") {
+        var form = _req.form();
+        var files = opt.files.split("||");
+        var i = 0,
+            len = files.length;
+        var f;
+        for (; i < len; i++) {
+            try {
+                f = files[i].split("|");
+                form.append(f[0], fs.createReadStream(f[1]));
+            } catch (e) {
+                continue;
+            }
+        }
+        form.append("end", "");
+    }
+};
 
 /*
  *@高京
@@ -627,33 +752,17 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
  *@ split_str 分隔字符串。如不为空(如{$::::::::::})则会转为：{key1:key1{$::::::::::}value1,key2:key2{$::::::::::}value2}。如为空则会转为：{key1:value1,ke2:value2}
  */
 exports.JsonEscape = function(Json_obj, split_str) {
-    var _json_obj = JSON.parse(JSON.stringify(Json_obj));
-    var _str = "";
-    var _s = 2;
-    var _e;
-    var i = 0;
 
-    var _json_str = JSON.stringify(_json_obj);
-    while (true) {
-
-        //找键
-        _e = _json_str.indexOf("\":\"", _s);
-        if (_e == -1) {
-            break;
+    var _JsonEscape = function(_json_obj) {
+        for (var key in _json_obj) {
+            if (typeof _json_obj[key] == "object")
+                _json_obj[key] = _JsonEscape(_json_obj[key]);
+            else
+                _json_obj[key] = escape(_json_obj[key]);
         }
-        _str = _json_str.substring(_s, _e);
-        _json_obj[_str] = escape(_json_obj[_str]);
-        if (split_str != null && split_str != "")
-            _json_obj[_str] = _str + split_str + _json_obj[_str];
-
-        //找下一个键
-        _s = _json_str.indexOf("\",\"", _e);
-        if (_s == -1)
-            break;
-        _s += 3;
-    }
-
-    return _json_obj;
+        return _json_obj;
+    };
+    return _JsonEscape(Json_obj);
 }
 
 /*
@@ -760,31 +869,18 @@ exports.uniencode = function(text) {
  *@ Json_obj 要转码的Json对象
  */
 exports.JsonUnicode = function(Json_obj) {
-    var _json_obj = JSON.parse(JSON.stringify(Json_obj));
-    var _str = "";
-    var _s = 2;
-    var _e;
-    var i = 0;
 
-    var _json_str = JSON.stringify(_json_obj);
-    while (true) {
-
-        //找键
-        _e = _json_str.indexOf("\":\"", _s);
-        if (_e == -1) {
-            break;
+    var _JsonUnicode = function(_json) {
+        for (var key in _json) {
+            if (typeof _json[key] == "object")
+                _json[key] = _JsonUnicode(_json[key]);
+            else
+                _json[key] = func.uniencode(_json[key]);
         }
-        _str = _json_str.substring(_s, _e);
-        _json_obj[_str] = func.uniencode(_json_obj[_str]);
+        return _json;
+    };
 
-        //找下一个键
-        _s = _json_str.indexOf("\",\"", _e);
-        if (_s == -1)
-            break;
-        _s += 3;
-    }
-
-    return _json_obj;
+    return _JsonUnicode(Json_obj);
 }
 
 
@@ -1195,10 +1291,11 @@ exports.formatTextArea = function(str) {
      */
 exports.get_domain = function(req) {
     var domain = "";
-    var hostname = req.hostname.toLowerCase();
+    var hostname = (req.header['x-forwarded-host'] || req.hostname).toLowerCase();
+
     var end = hostname.indexOf("." + func.domain);
     if (end == -1) // 无二级域名
-        domain = "www";
+        domain = func.subDomain_default;
     else
         domain = hostname.substring(0, end);
     return domain;
