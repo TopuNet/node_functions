@@ -1,8 +1,12 @@
-# node.js类库 v1.0.3
+# node.js类库 v1.0.4
 ###安装：npm install TopuNet-node-functions
 
 更新日志：
 -------------
+
+v1.0.4
+
+        1. CreateTopuSignature 的 处理ParamsJsonObj 代码块做了修改，之前写法不科学且有bug
 
 v1.0.3
 

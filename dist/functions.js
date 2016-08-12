@@ -1,7 +1,7 @@
 /*
  *@ 高京
  *@ 2016-08-10
- *@ v1.0.3
+ *@ v1.0.4
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
@@ -524,7 +524,7 @@ exports.CreateTopuSignature = function(ParamsJsonObj, CallBack, non_str, stamp) 
     var _str = "";
     var _dt; //日期
     var _key; //遍历Json时，获得键对象
-    var _sign; //签名
+    var _sign = ""; //签名
     var _KeyFilePath = "./inc/abc.txt"; //密钥文件，可以为物理硬盘路径：e:\abc.txt
 
     //随机数
@@ -553,8 +553,9 @@ exports.CreateTopuSignature = function(ParamsJsonObj, CallBack, non_str, stamp) 
     }
 
     //处理ParamsJsonObj
-    //_ParamsJsonObj = func.JsonEscape(_ParamsJsonObj);
-    _sign = JSON.stringify(_ParamsJsonObj).replace(/","/g, "").replace(/":"/g, "=").replace(/[\{","\}]/g, "");
+    for (var key in _ParamsJsonObj) {
+        _sign += key + "=" + _ParamsJsonObj[key];
+    }
     _sign += "non_str=" + _non_str;
     _sign += "stamp=" + _stamp;
     _sign += "keySecret=" + _KeySecretNew;
