@@ -1,6 +1,10 @@
 # node.js类库 v1.0.5
 ###安装：npm install TopuNet-node-functions
 
+文件结构：
+-------------
+        functions.js 放入项目文件夹handle中
+
 更新日志：
 -------------
 v1.0.5
@@ -25,7 +29,3 @@ v1.0.1
 
         1. 创建项目并发布到github
         2. 发布到npm：TopuNet-node-functions
-
-文件结构：
--------------
-        functions.js 放入项目文件夹handle中
