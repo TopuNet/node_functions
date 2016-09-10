@@ -207,7 +207,7 @@ exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或
 */
 
 
-var express = require("express");
+// var express = require("express");
 var func = require('./functions');
 var config = require('./config');
 var crypto = require('crypto'); //加密模块，CreateHash用
@@ -217,7 +217,7 @@ var https = require('https'); //https请求模块，DoREST用
 var request = require("request"); // request模块，Request方法用
 var dtFormat = require('dateFormat'); //日期格式化模块，dateFormat用
 var nodemailer = require('nodemailer'); //邮件发送模块，MailSend用
-var smtpTransport = require('nodemailer-smtp-transport'); //邮件发送模块，MailSend用
+// var smtpTransport = require('nodemailer-smtp-transport'); //邮件发送模块，MailSend用
 var images = require("images"); //图片处理模块，MakeThumb和AddWatermark用
 var path = require('path'); //给图片加水印用
 var xml2js = require("xml2js"); //解析xml为json用
@@ -253,7 +253,7 @@ exports.xmlToJson = function(xmlString, CallBack_success) {
     xml2js.parseString(xmlString, { explicitArray: false }, function(err, json) {
         CallBack_success(json);
     });
-}
+};
 
 /*
     渲染错误页面
@@ -290,7 +290,7 @@ exports.CreateRandomStr = function(n, kind, filter_strs) {
             return false;
         else
             return true;
-    }
+    };
 
     var str;
     var str2;
@@ -332,7 +332,7 @@ exports.CreateRandomStr = function(n, kind, filter_strs) {
             for (_i; _i < n / 2; _i++) {
                 _r = Math.floor(Math.random() * 26) + 1;
 
-                str = Math.floor(Math.random() * 10)
+                str = Math.floor(Math.random() * 10);
                 if (!filter(str)) {
                     _i--;
                     continue;
@@ -352,7 +352,7 @@ exports.CreateRandomStr = function(n, kind, filter_strs) {
             for (_i; _i < n / 2; _i++) {
                 _r = Math.floor(Math.random() * 26) + 1;
 
-                str = Math.floor(Math.random() * 10)
+                str = Math.floor(Math.random() * 10);
                 if (!filter(str)) {
                     _i--;
                     continue;
@@ -387,7 +387,7 @@ exports.CreateRandomStr = function(n, kind, filter_strs) {
         case 7:
             for (_i; _i < n / 2; _i++) {
 
-                str = Math.floor(Math.random() * 10)
+                str = Math.floor(Math.random() * 10);
                 if (!filter(str)) {
                     _i--;
                     continue;
@@ -473,7 +473,7 @@ exports.CreateHash = function(str, HashKind, UpperLower) {
  *@query.f:文件路径。如：e:\abc.txt | ./inc/abc.txt
  */
 exports.ReadFile = function(req, res, next) {
-    f = req.query["f"];
+    var f = req.query.f;
     fs.readFile(f, function(err, data) {
         var _str = "";
         if (err) {
@@ -522,20 +522,20 @@ exports.CreateTopuSignature = function(ParamsJsonObj, CallBack, non_str, stamp) 
     var _KeySecret; //密钥
     var _KeySecretNew; //混插后密钥
     var _str = "";
-    var _dt; //日期
-    var _key; //遍历Json时，获得键对象
+    // var _dt; //日期
+    // var _key; //遍历Json时，获得键对象
     var _sign = ""; //签名
     var _KeyFilePath = "./inc/abc.txt"; //密钥文件，可以为物理硬盘路径：e:\abc.txt
 
     //随机数
-    if (non_str == undefined)
+    if (non_str === undefined)
         _non_str = _handle.CreateRandomStr(32, 7);
     else
         _non_str = non_str;
 
 
     //时间戳
-    if (stamp == undefined)
+    if (stamp === undefined)
         _stamp = _handle.CreateTimeStamp(new Date());
     else
         _stamp = stamp;
@@ -617,7 +617,6 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
         _res.setEncoding('utf8'); //返回值设定编码
 
         var _postdata = "";
-        var i = 0;
         _res.on('data', function(_data) {
             _postdata += _data;
         });
@@ -627,7 +626,7 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
                 json = JSON.parse(_postdata);
                 CallBackSuccess(json);
             } catch (e) {
-                if (CallBackError != null)
+                if (CallBackError !== null)
                     CallBackError(e);
             }
 
@@ -642,7 +641,7 @@ exports.DoREST = function(Host, Port, Path, Method, PostData, CallBackSuccess, C
     }
     _req.end();
     _req.on('error', function(e) {
-        console.log("\nfunc 607:")
+        console.log("\nfunc 607:");
         console.dir(e);
         CallBackError("err:" + e.message);
     });
@@ -750,9 +749,8 @@ exports.Request = function(opt, Callback_success, Callback_error) {
  *@20151014 
  *@【同步】对JSON对象的值进行escape转码。返回转码后的JSON对象
  *@ Json_obj 待转码JSON对象
- *@ split_str 分隔字符串。如不为空(如{$::::::::::})则会转为：{key1:key1{$::::::::::}value1,key2:key2{$::::::::::}value2}。如为空则会转为：{key1:value1,ke2:value2}
  */
-exports.JsonEscape = function(Json_obj, split_str) {
+exports.JsonEscape = function(Json_obj) {
 
     var _JsonEscape = function(_json_obj) {
         for (var key in _json_obj) {
@@ -764,7 +762,7 @@ exports.JsonEscape = function(Json_obj, split_str) {
         return _json_obj;
     };
     return _JsonEscape(Json_obj);
-}
+};
 
 /*
  *@高京
@@ -799,7 +797,7 @@ exports.ShengLue = function(Str, Length, ShowMore) {
             _str += Str.substr(_i, 1);
     }
     return _str;
-}
+};
 
 /*
  *@高京
@@ -823,7 +821,7 @@ exports.StrLength = function(Str) {
     }
 
     return _l;
-}
+};
 
 /*
  *@高京
@@ -839,7 +837,7 @@ exports.GetExtension = function(Str) {
         ext = "";
     }
     return ext;
-}
+};
 
 /*
  *@陈斌
@@ -861,7 +859,7 @@ exports.uniencode = function(text) {
     text = text.replace('%25', '%u0025');
     text = text.toLowerCase();
     return text;
-}
+};
 
 /*
  *@高京
@@ -882,7 +880,7 @@ exports.JsonUnicode = function(Json_obj) {
     };
 
     return _JsonUnicode(Json_obj);
-}
+};
 
 
 /*
@@ -924,7 +922,7 @@ exports.JsonUnion = function(Parent, Child, Parent_FK, Child_PK, Parent_keyName)
         }
 
         return Parent;
-    }
+    };
     /*
      *@陈斌
      *@20151020
@@ -934,7 +932,7 @@ exports.JsonUnion = function(Parent, Child, Parent_FK, Child_PK, Parent_keyName)
      */
 exports.checkHave = function(str, Pat) {
 
-    if (str == "" || str == null)
+    if (str === "" || str === null)
         return false;
 
     str = "<" + str.replace(/,/g, "><") + ">";
@@ -945,7 +943,7 @@ exports.checkHave = function(str, Pat) {
     else
         return false;
     return false;
-}
+};
 
 /*
  *@ 高京
@@ -956,19 +954,19 @@ exports.checkHave = function(str, Pat) {
 exports.filterNoNum = function(str) {
     var _str = "";
     if (str) {
-        var arr = str.split(',')
+        var arr = str.split(',');
         var i;
         var c = arr.length;
         for (i = 0; i < c; i++) {
             if (!isNaN(arr[i])) {
-                if (_str != "")
+                if (_str !== "")
                     _str += ",";
                 _str += arr[i];
             }
         }
     }
     return _str;
-}
+};
 
 /*
  *@ 高京
@@ -981,7 +979,7 @@ exports.transParameters = function(query, Filter_Para) {
     var str = "";
     var i = 0;
     var json_str = JSON.stringify(query).replace("{", "").replace("}", "").replace(/\"/g, "");
-    if (json_str == "")
+    if (json_str === "")
         return "";
     var arr = json_str.split(',');
     var arr_temp;
@@ -997,14 +995,14 @@ exports.transParameters = function(query, Filter_Para) {
     for (; i < c; i++) {
         arr_temp = arr[i].split(':');
         if (Filter_Para.indexOf("<" + arr_temp[0] + ">") == -1) {
-            if (str != "")
+            if (str !== "")
                 str += "&";
             str += arr_temp[0] + "=" + arr_temp[1];
         }
     }
 
     return str;
-}
+};
 
 
 /*
@@ -1015,7 +1013,7 @@ exports.transParameters = function(query, Filter_Para) {
  *@ kind：1-标准全日期 2-标准短日期 其他-自定义字符串
  */
 exports.dateFormat = function(dt, kind) {
-    if (dt == "" || dt == null)
+    if (dt === "" || dt === null)
         return "";
     if (!kind)
         kind = 1;
@@ -1023,10 +1021,8 @@ exports.dateFormat = function(dt, kind) {
         switch (kind) {
             case 2:
                 return func.dateFormat(dt, "yyyy-mm-dd");
-                break;
             default:
                 return func.dateFormat(dt, "yyyy-mm-dd HH:MM:ss");
-                break;
         }
     }
     try {
@@ -1034,7 +1030,7 @@ exports.dateFormat = function(dt, kind) {
     } catch (e) {
         return "";
     }
-}
+};
 
 /*
  *@陈斌
@@ -1045,7 +1041,7 @@ exports.dateFormat = function(dt, kind) {
  */
 exports.CreatCookies = function(id, Passwd, res) {
     var count = config.cookies_str.length;
-    var PasswdList = new Array();
+    var PasswdList = [];
     var cookies_pwd = "";
     for (var i = 0; i < count; i++) {
         PasswdList[i] = config.cookies_str[i];
@@ -1055,28 +1051,26 @@ exports.CreatCookies = function(id, Passwd, res) {
     }
     //判断密码长度
     if (Passwd.length <= 16) {
-        for (var j = 0; j < PasswdList.length; j++) {
-            if (PasswdList[j] == undefined) {
+        for (j = 0; j < PasswdList.length; j++) {
+            if (PasswdList[j] === undefined) {
                 PasswdList[j] = "";
             }
             cookies_pwd = cookies_pwd + PasswdList[j];
         }
     } else {
-        for (var j = 0; j < PasswdList.length; j++) {
-            if (PasswdList[j] == undefined) {
+        for (j = 0; j < PasswdList.length; j++) {
+            if (PasswdList[j] === undefined) {
                 PasswdList[j] = "";
             }
             cookies_pwd = cookies_pwd + PasswdList[j];
         }
-        cookies_pwd = cookies_pwd + Passwd.substr(16, Passwd.length)
+        cookies_pwd = cookies_pwd + Passwd.substr(16, Passwd.length);
     }
     var cookie_val = "{\"Mid\":\"" + id + "\",\"Passwd\":\"" + cookies_pwd + "\"}";
 
     //生成cookie
     res.cookie(config.cookieName_Member, cookie_val);
-
-
-}
+};
 
 /*
  *@陈斌
@@ -1087,23 +1081,24 @@ exports.GetCookies = function(req) {
     var result; //返回结果
     //获取cookies内容
     var getcookie = req.cookies[config.cookieName_Member];
-    if (getcookie != undefined) {
+    if (getcookie !== undefined) {
         var cookie = JSON.parse(getcookie);
         //获取cookies中的id和密码
         var id = cookie.Mid;
         //获取cookies中存的密码
         var cookies_pwd = cookie.Passwd;
         var pwd = ""; //用来存cookies中获取的密码
+        var i;
         //判断密码长度
         if (cookies_pwd.length - 48 <= 0) {
-            for (var i = 0; i < (cookies_pwd.length - 32); i++) {
+            for (i = 0; i < (cookies_pwd.length - 32); i++) {
                 pwd = pwd + cookies_pwd.substring(config.cookies_key[i] + i - 1, config.cookies_key[i] + i);
             }
         } else {
-            for (var i = 0; i < (cookies_pwd.length - 32); i++) {
+            for (i = 0; i < (cookies_pwd.length - 32); i++) {
                 pwd = pwd + cookies_pwd.substring(config.cookies_key[i] + i - 1, config.cookies_key[i] + i);
             }
-            pwd = pwd + cookies_pwd.substr(48, cookies_pwd.length)
+            pwd = pwd + cookies_pwd.substr(48, cookies_pwd.length);
         }
         result = "{\"Mid\":\"" + id + "\",\"Passwd\":\"" + pwd + "\"}";
     } else {
@@ -1111,7 +1106,7 @@ exports.GetCookies = function(req) {
     }
 
     return result;
-}
+};
 
 
 /*
@@ -1159,7 +1154,7 @@ exports.MailSend = function(Subject, isHtml, Body, HtmlBody, FromName, MailTo, B
                 // pass: "x3b_net_cn123456"
                 // user: "x3b_net_cn@yahoo.com",
                 // pass: "x3bnetcn123456"
-        }
+        };
 
         var transporter = nodemailer.createTransport({
             host: 'smtp.sina.com',
@@ -1171,7 +1166,7 @@ exports.MailSend = function(Subject, isHtml, Body, HtmlBody, FromName, MailTo, B
         transporter = nodemailer.createTransport({
             service: 'qq',
             auth: auth
-        })
+        });
 
         if (isHtml)
             Body = "";
@@ -1200,7 +1195,7 @@ exports.MailSend = function(Subject, isHtml, Body, HtmlBody, FromName, MailTo, B
         });
 
     });
-}
+};
 
 
 /*
@@ -1223,7 +1218,7 @@ exports.NameMask = function(str, mask, length) {
         _str += mask;
     }
     return _str + str.substring(c - 1, c);
-}
+};
 
 /*
  *@ 高京
@@ -1247,7 +1242,7 @@ exports.MobileMask = function(str, mask, length) {
     _str += str.substring(diff + length, c);
 
     return _str;
-}
+};
 
 /*
  *@ 高京
@@ -1262,8 +1257,8 @@ exports.MakeThumb = function(originalImagePath, outputPath, _width, _height) {
     try {
         var img = images(originalImagePath);
 
-        if (_width != 0) {
-            if (_height == 0)
+        if (_width !== 0) {
+            if (_height === 0)
                 img = img.resize(_width);
             else
                 img = img.resize(_width, _height);
@@ -1274,7 +1269,7 @@ exports.MakeThumb = function(originalImagePath, outputPath, _width, _height) {
     } catch (e) {
         return e;
     }
-}
+};
 
 /*
  *@ 高京
@@ -1284,7 +1279,7 @@ exports.MakeThumb = function(originalImagePath, outputPath, _width, _height) {
  */
 exports.formatTextArea = function(str) {
         return str.replace(/\n/g, "<br />").replace(/\s\s/g, "&nbsp;&nbsp;");
-    }
+    };
     /*
      *@ 高京
      *@ 20160417
@@ -1300,7 +1295,7 @@ exports.get_domain = function(req) {
     else
         domain = hostname.substring(0, end);
     return domain;
-}
+};
 
 /*
  *@ 高京
@@ -1333,7 +1328,7 @@ exports.AddWatermark = function(watermarkImg_src, sourceImg_src, savePath_src, l
     var sHeight = sourceImg.height();
     var wmWidth = watermarkImg.width();
     var wmHeight = watermarkImg.height();
-    if (left == null || left == "" || top == null || top == "") {
+    if (left === null || left === "" || top === null || top === "") {
         left = sWidth - wmWidth - 10;
         top = sHeight - wmHeight - 10;
     }
@@ -1343,4 +1338,4 @@ exports.AddWatermark = function(watermarkImg_src, sourceImg_src, savePath_src, l
         .draw(watermarkImg, left, top)
         // 保存格式会自动识别
         .save(savePath);
-}
+};

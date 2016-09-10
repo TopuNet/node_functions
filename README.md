@@ -1,8 +1,11 @@
-# node.js类库 v1.0.4
+# node.js类库 v1.0.5
 ###安装：npm install TopuNet-node-functions
 
 更新日志：
 -------------
+v1.0.5
+
+        1. 通过jshint
 
 v1.0.4
 
