@@ -1,12 +1,12 @@
 /*
  *@ 高京
  *@ 2016-08-10
- *@ v1.0.4
+ *@ v1.1.1
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
 
-exports.domain = "topu.net"; // 主域名-获得二级域名用
+exports.domain = ""; // 主域名-获得二级域名用
 exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或无二级域名时使用
 
 /*
@@ -37,6 +37,18 @@ exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或
         *【同步】文件读取。返回（文件内容，或以"err:"开头的错误信息）
         * path:文件路径。如：e:\abc.txt | ./npm-debug.log
         ReadFileSync(path)
+
+        *【同步】生成topu签名。
+            返回：
+            {
+                "non_str": "8q0M3i7T4P1S5J9Q3r1l5p6V5G1O7Q0U",
+                "stamp": "1440570767",
+                "signature": "FC5A7F9BC8A7D418209FCC23772B785155FB3D8F"
+            }
+        * ParamsJsonObj:要传参数的JSON对象
+        * non_str:随机数，不传会自动生成
+        * stamp:时间戳，不传会自动生成
+        CreateTopuSignatureSync(ParamsJsonObj, non_str, stamp)
 
         *【异步】生成topu签名。
         * ParamsJsonObj:要传参数的JSON对象
@@ -261,10 +273,15 @@ exports.xmlToJson = function(xmlString, CallBack_success) {
 exports.Error = function(res, err) {
     err.status = err.status || 404;
     res.status(err.status);
-    res.render('./err/404.html', {
-        "common": config.GetCommon(err.status, "", "", 1),
-        "err": (err.status) + ": " + err.message.replace(/[\n\r]/g, " ").replace(/\"/g, "\\\"")
-    });
+    if(config.CacheData.Init!==null){
+        res.render('./err/404.html', {
+            "common": config.GetCommon(err.status, "", "", 1),
+            "err": (err.status) + ": " + err.message.replace(/[\n\r]/g, " ").replace(/\"/g, "\\\""),
+            "Advertise":config.CacheData.Advertise.list,
+            "Init":config.CacheData.Init.list,
+            "Info":config.CacheData.Info.list
+        });
+    }
 };
 
 
@@ -499,6 +516,89 @@ exports.ReadFileSync = function(path) {
 
 /*
 *@高京
+*@2017-02-09
+*@【同步】生成topu签名。
+    返回：
+    {
+        "non_str": "8q0M3i7T4P1S5J9Q3r1l5p6V5G1O7Q0U",
+        "stamp": "1440570767",
+        "signature": "FC5A7F9BC8A7D418209FCC23772B785155FB3D8F"
+    }
+*@ ParamsJsonObj:要传参数的JSON对象
+*@ non_str:随机数，不传会自动生成
+*@ stamp:时间戳，不传会自动生成
+*/
+exports.CreateTopuSignatureSync = function(ParamsJsonObj, non_str, stamp) {
+    var _ParamsJsonObj = JSON.parse(JSON.stringify(ParamsJsonObj));
+    var _handle = require("./functions.js");
+    var _non_str; //随机数
+    var _stamp; //时间戳
+    var _i;
+    var _n;
+    var _KeySecret; //密钥
+    var _KeySecretNew; //混插后密钥
+    var _str = "";
+    // var _dt; //日期
+    // var _key; //遍历Json时，获得键对象
+    var _sign = ""; //签名
+    var _KeyFilePath = "./inc/abc.txt"; //密钥文件，可以为物理硬盘路径：e:\abc.txt
+
+    //随机数
+    if (non_str === undefined)
+        _non_str = _handle.CreateRandomStr(32, 7);
+    else
+        _non_str = non_str;
+
+
+    //时间戳
+    if (stamp === undefined)
+        _stamp = _handle.CreateTimeStamp(new Date());
+    else
+        _stamp = stamp;
+
+    //密钥
+    _KeySecret = _handle.ReadFileSync(_KeyFilePath).toString();
+
+    //随机数和密钥混插
+    _i = 0;
+    _n = 32;
+    _KeySecretNew = "";
+    for (_i; _i < _n; _i++) {
+        _KeySecretNew += _non_str.substr(_i, 1);
+        _KeySecretNew += _KeySecret.substr(_i, 1);
+    }
+
+    //处理ParamsJsonObj
+    for (var key in _ParamsJsonObj) {
+        _sign += key + "=" + _ParamsJsonObj[key];
+    }
+    _sign += "non_str=" + _non_str;
+    _sign += "stamp=" + _stamp;
+    _sign += "keySecret=" + _KeySecretNew;
+
+    //Hash加密
+    _sign = _handle.CreateHash(_sign, "sha1").toLowerCase();
+
+    // //拼接JSON
+    // _str = "{";
+    // /*    _str += "\"params_filter\":\"\"";*/
+    // _str += "\"source\":\"node\"";
+    // _str += ",\"non_str\":\"" + _non_str + "\"";
+    // _str += ",\"stamp\":\"" + _stamp + "\"";
+    // _str += ",\"signature\":\"" + _sign + "\"";
+    // _str += "}";
+
+    return {
+        "source": "node",
+        "non_str": _non_str,
+        "stamp": _stamp,
+        "signature": _sign
+    };
+};
+
+
+/*
+*@高京
 *@20150826 
 *@【异步】生成topu签名。
 *@ ParamsJsonObj:要传参数的JSON对象
@@ -560,14 +660,13 @@ exports.CreateTopuSignature = function(ParamsJsonObj, CallBack, non_str, stamp) 
     _sign += "stamp=" + _stamp;
     _sign += "keySecret=" + _KeySecretNew;
 
-
     //Hash加密
     _sign = _handle.CreateHash(_sign, "sha1").toLowerCase();
 
     //拼接JSON
     _str = "{";
-    _str += "\"params_filter\":\"\"";
-    _str += ",\"source\":\"node\"";
+    /*    _str += "\"params_filter\":\"\"";*/
+    _str += "\"source\":\"node\"";
     _str += ",\"non_str\":\"" + _non_str + "\"";
     _str += ",\"stamp\":\"" + _stamp + "\"";
     _str += ",\"signature\":\"" + _sign + "\"";
@@ -895,41 +994,41 @@ exports.JsonUnicode = function(Json_obj) {
  */
 exports.JsonUnion = function(Parent, Child, Parent_FK, Child_PK, Parent_keyName) {
 
-        var _n_parent = 0;
-        var _c_parent = Parent.length;
-        var _i_child = 0;
-        var _c_child = Child.length;
-        var _i;
+    var _n_parent = 0;
+    var _c_parent = Parent.length;
+    var _i_child = 0;
+    var _c_child = Child.length;
+    var _i;
 
-        for (; _i_child < _c_child; _i_child++) {
-            if (Child[_i_child][Child_PK] != Parent[_n_parent][Parent_FK]) {
-                _n_parent = 0;
-                _i = 0;
-                for (; _i < _c_parent; _i++) {
-                    if (Parent[_i][Parent_FK] == Child[_i_child][Child_PK]) {
-                        _n_parent = _i;
-                        break;
-                    }
+    for (; _i_child < _c_child; _i_child++) {
+        if (Child[_i_child][Child_PK] != Parent[_n_parent][Parent_FK]) {
+            _n_parent = 0;
+            _i = 0;
+            for (; _i < _c_parent; _i++) {
+                if (Parent[_i][Parent_FK] == Child[_i_child][Child_PK]) {
+                    _n_parent = _i;
+                    break;
                 }
             }
-            if (_n_parent >= Parent.length)
-                continue;
-
-            if (!Parent[_n_parent][Parent_keyName])
-                Parent[_n_parent][Parent_keyName] = [Child[_i_child]];
-            else
-                Parent[_n_parent][Parent_keyName][Parent[_n_parent][Parent_keyName].length] = Child[_i_child];
         }
+        if (_n_parent >= Parent.length)
+            continue;
 
-        return Parent;
-    };
-    /*
-     *@陈斌
-     *@20151020
-     *@【同步】判断逗号分隔的主码中是否含有某一主码。返回true或false
-     *@str 被比较字符串。可以为逗号分隔的多个主码，也可以是尖括号包围的多个主码
-     *@Pat 条件主码,string
-     */
+        if (!Parent[_n_parent][Parent_keyName])
+            Parent[_n_parent][Parent_keyName] = [Child[_i_child]];
+        else
+            Parent[_n_parent][Parent_keyName][Parent[_n_parent][Parent_keyName].length] = Child[_i_child];
+    }
+
+    return Parent;
+};
+/*
+ *@陈斌
+ *@20151020
+ *@【同步】判断逗号分隔的主码中是否含有某一主码。返回true或false
+ *@str 被比较字符串。可以为逗号分隔的多个主码，也可以是尖括号包围的多个主码
+ *@Pat 条件主码,string
+ */
 exports.checkHave = function(str, Pat) {
 
     if (str === "" || str === null)
@@ -1278,13 +1377,13 @@ exports.MakeThumb = function(originalImagePath, outputPath, _width, _height) {
  *@ str：要格式化的字符串
  */
 exports.formatTextArea = function(str) {
-        return str.replace(/\n/g, "<br />").replace(/\s\s/g, "&nbsp;&nbsp;");
-    };
-    /*
-     *@ 高京
-     *@ 20160417
-     *@【同步】获取网址的二级域名
-     */
+    return str.replace(/\n/g, "<br />").replace(/\s\s/g, "&nbsp;&nbsp;");
+};
+/*
+ *@ 高京
+ *@ 20160417
+ *@【同步】获取网址的二级域名
+ */
 exports.get_domain = function(req) {
     var domain = "";
     var hostname = (req.header['x-forwarded-host'] || req.hostname).toLowerCase();
