@@ -1,7 +1,7 @@
 /*
  *@ 高京
  *@ 2016-08-10
- *@ v1.1.1
+ *@ v1.1.2
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
@@ -557,7 +557,7 @@ exports.CreateTopuSignatureSync = function(ParamsJsonObj, non_str, stamp) {
         _stamp = stamp;
 
     //密钥
-    _KeySecret = _handle.ReadFileSync(_KeyFilePath).toString();
+    _KeySecret = _handle.ReadFileSync(_KeyFilePath).toString().trim();
 
     //随机数和密钥混插
     _i = 0;

@@ -1,4 +1,4 @@
-# node.js类库 v1.1.1
+# node.js类库 v1.1.2
 ### 安装：npm install TopuNet-node-functions
 
 文件结构：
@@ -7,6 +7,10 @@
 
 更新日志：
 -------------
+v1.1.2
+
+        1. CreateTopuSignatureSync在从文件获取密钥时，加了.trim()
+
 v1.1.1
 
         1. 增加生成topu签名的同步方法
