@@ -1,7 +1,7 @@
 /*
  *@ 高京
  *@ 2016-08-10
- *@ v1.1.2
+ *@ v1.2.1
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
@@ -11,6 +11,15 @@ exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或
 
 /*
    高京
+        *【同步】 过滤表单非法字符
+        * str: 需要过滤的字符串
+        convers(str)
+
+        *【同步】格式化日期。今天的日期只显示时间。不含秒
+        * timestamp：待格式化时间戳
+        * show_time：非今天的日期是否显示具体时间（不含秒）。true/false(默认)
+        formatTimeStamp(timestamp, show_time) 
+
         *【同步】生成随机数随机码。返回字符串
         * n: 位数，数字+字母的组合时请键入偶数
         * kind: 生成种类。1-纯数字 2-纯大写字母 3-纯小写字母 4-数字+大写字母 5-数字+小写字母 6-大写字母或小写字母 7-数字+纯大写字母或小写字母
@@ -233,6 +242,83 @@ var nodemailer = require('nodemailer'); //邮件发送模块，MailSend用
 var images = require("images"); //图片处理模块，MakeThumb和AddWatermark用
 var path = require('path'); //给图片加水印用
 var xml2js = require("xml2js"); //解析xml为json用
+
+/*
+    高京
+    2017-10-25
+    【同步】 过滤表单非法字符
+    *@ str: 需要过滤的字符串
+*/
+exports.convers = function(str) {
+
+    var result = str;
+
+    var regExp = new RegExp("\'", "ig");
+    result = result.replace(regExp, "&acute;");
+
+    regExp = new RegExp("\<", "ig");
+    result = result.replace(regExp, "&lt;");
+
+    regExp = new RegExp("\"", "ig");
+    result = result.replace(regExp, "&quot;");
+
+    return result;
+};
+
+/*
+    高京
+    2017-07-21
+    【同步】 格式化日期。今天的日期只显示时间。不含秒
+    * timestamp：待格式化时间戳
+    * show_time：非今天的日期是否显示具体时间（不含秒）。true/false(默认)
+*/
+exports.formatTimeStamp = function(timestamp, show_time) {
+
+    show_time = show_time || false;
+
+    var d = new Date(timestamp);
+    if (d.toString() == "Invalid Date")
+        return "";
+    else {
+        d = {
+            year: d.getFullYear(),
+            month: d.getMonth() + 1,
+            date: d.getDate(),
+            hour: d.getHours(),
+            minute: d.getMinutes()
+        };
+
+        // 获得格式化的时间
+        // @_d: 时间
+        // @_str: 已有字符串
+        var getTimeStr = function(_d, _str) {
+            _str = _str || "";
+            if (_str !== "")
+                _str += " ";
+            if (_d.hour < 10)
+                _str += "0";
+            _str += _d.hour + ":";
+            if (_d.minute < 10)
+                _str += "0";
+            _str += _d.minute;
+
+            return _str;
+        }
+
+        // 拼接格式化字符串
+        var str,
+            now = new Date();
+        if (now.getFullYear() == d.year && now.getMonth() + 1 == d.month && now.getDate() == d.date) {
+            str = getTimeStr(d);
+        } else {
+            str = d.year + "/" + d.month + "/" + d.date;
+            if (show_time)
+                str = getTimeStr(d, str);
+        }
+
+        return str;
+    }
+};
 
 /*
     高京
