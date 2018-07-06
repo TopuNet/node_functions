@@ -1,7 +1,7 @@
 /*
  *@ 高京
  *@ 2016-08-10
- *@ v1.2.1
+ *@ v1.2.2
  *@ 全局公共方法，添加方法的话：1.请先确认没有功能类同的方法可以使用（避免同一功能多个类同方法存在）；2.要尽量考虑可移植性和复用性，不要为了实现某一单一功能而增加本文件代码量；
                                 3.将调用方法写在顶部注释中；4.有新方法添加时，在群里吼一声
  */
@@ -163,7 +163,7 @@ exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或
         * height：高。0为按比例缩放。不为0时，可能会变形
         MakeThumb (originalImagePath, outputPath, width, height) 
      
-        *【同步】格式化Textarea输入的字符串，替换空格和回车（注意用<%- %>输出。返回字符串
+        *【同步】格式化Textarea输入的字符串，替换空格和回车（注意用<%-- %>输出。返回字符串
         * str：要格式化的字符串
         formatTextArea(str)
 
@@ -180,6 +180,9 @@ exports.subDomain_default = "www"; // 默认二级域名，没找到主域名或
         * xmlString：待解析的xml字符串
         * CallBack_success(json)：成功回调
         xmlToJson(xmlString, CallBack_success)
+
+        *【同步】渲染错误页面
+        Error(res, err)
 
         *【异步】request请求
         * opt: {
@@ -303,7 +306,7 @@ exports.formatTimeStamp = function(timestamp, show_time) {
             _str += _d.minute;
 
             return _str;
-        }
+        };
 
         // 拼接格式化字符串
         var str,
@@ -354,12 +357,15 @@ exports.xmlToJson = function(xmlString, CallBack_success) {
 };
 
 /*
+    高京
+    2017-05-05
     渲染错误页面
 */
 exports.Error = function(res, err) {
     err.status = err.status || 404;
     res.status(err.status);
-    if(config.CacheData.Init!==null){
+    res.send("404 Error");
+    /*if(config.CacheData.Init!==null){
         res.render('./err/404.html', {
             "common": config.GetCommon(err.status, "", "", 1),
             "err": (err.status) + ": " + err.message.replace(/[\n\r]/g, " ").replace(/\"/g, "\\\""),
@@ -367,7 +373,7 @@ exports.Error = function(res, err) {
             "Init":config.CacheData.Init.list,
             "Info":config.CacheData.Info.list
         });
-    }
+    }*/
 };
 
 
@@ -623,7 +629,7 @@ exports.CreateTopuSignatureSync = function(ParamsJsonObj, non_str, stamp) {
     var _n;
     var _KeySecret; //密钥
     var _KeySecretNew; //混插后密钥
-    var _str = "";
+
     // var _dt; //日期
     // var _key; //遍历Json时，获得键对象
     var _sign = ""; //签名
@@ -1330,15 +1336,15 @@ exports.MailSend = function(Subject, isHtml, Body, HtmlBody, FromName, MailTo, B
         var auth = {
             user: config.mail_server.split('|')[0],
             pass: config.mail_server.split('|')[1]
-                // user: "x3b_net_cn@qq.com",
-                // pass: "gpcockjwysqkddia"
-                //pass:"x3bnetcn123456"
-                // user: "x3b_net_cn_www@sina.com",
-                // pass: "x3b_net_cn123456"
-                // user: "x3b_net_cn@sohu.com",
-                // pass: "x3b_net_cn123456"
-                // user: "x3b_net_cn@yahoo.com",
-                // pass: "x3bnetcn123456"
+            // user: "x3b_net_cn@qq.com",
+            // pass: "gpcockjwysqkddia"
+            //pass:"x3bnetcn123456"
+            // user: "x3b_net_cn_www@sina.com",
+            // pass: "x3b_net_cn123456"
+            // user: "x3b_net_cn@sohu.com",
+            // pass: "x3b_net_cn123456"
+            // user: "x3b_net_cn@yahoo.com",
+            // pass: "x3bnetcn123456"
         };
 
         var transporter = nodemailer.createTransport({
@@ -1459,7 +1465,7 @@ exports.MakeThumb = function(originalImagePath, outputPath, _width, _height) {
 /*
  *@ 高京
  *@ 20151120
- *@【同步】格式化Textarea输入的字符串，替换空格和回车（注意用<%- %>输出。返回字符串
+ *@【同步】格式化Textarea输入的字符串，替换空格和回车（注意用<%-- %>输出。返回字符串
  *@ str：要格式化的字符串
  */
 exports.formatTextArea = function(str) {

@@ -1,4 +1,4 @@
-# node.js类库 v1.2.1
+# node.js类库 v1.2.2
 ### 安装：npm install TopuNet-node-functions
 
 文件结构：
@@ -179,6 +179,9 @@
                 * CallBack_success(json)：成功回调
                 xmlToJson(xmlString, CallBack_success)
 
+                *【同步】渲染错误页面
+                Error(res, err)
+
                 *【异步】request请求
                 * opt: {
                         url: request地址，支持https协议和地址栏参数,
@@ -226,6 +229,10 @@
 
 更新日志：
 -------------
+v1.2.2
+
+        1. 修改方法：Error
+
 v1.2.1
 
         1. 增加方法：formatTimeStamp、convers

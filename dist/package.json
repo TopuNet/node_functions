@@ -1,6 +1,6 @@
 {
   "name": "TopuNet-node-functions",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Topu.net node.js类库",
   "main": "Readme.md",
   "scripts": {
